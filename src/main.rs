@@ -1,13 +1,9 @@
-use std::{
-    error::Error,
-    fs::File,
-    io::{Read, stdin},
-    path::{Path, PathBuf},
-};
+use score_lib::{ Score, config, explain };
+
+use std::{ error::Error, fs::File, io::{ Read, stdin }, path::{ Path, PathBuf } };
 
 use clap::Parser;
-use ortalab::Score;
-use ortalib::{Card, Chips, Edition, Enhancement, Mult, PokerHand, Round};
+use ortalib::{ Chips, Mult, Round };
 
 #[derive(Parser)]
 struct Opts {
@@ -20,6 +16,7 @@ struct Opts {
 fn main() -> Result<(), Box<dyn Error>> {
     let opts = Opts::parse();
     let round = parse_round(&opts)?;
+    config::init(opts.explain);
 
     let (chips, mult) = score(round);
 
@@ -40,9 +37,9 @@ fn parse_round(opts: &Opts) -> Result<Round, Box<dyn Error>> {
 }
 
 fn score(round: Round) -> (Chips, Mult) {
-    println!("{:?}", round);
-    let mut score = Score::new();
-    score.calculate_score(&round);
+    explain!("{:?}", round);
+    let mut score = Score::new(round);
+    score.calculate_score();
 
     return (score.chips, score.mult);
 }

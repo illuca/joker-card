@@ -79,3 +79,29 @@ impl poker_scores for PokerHand {
 }
 ```
 
+
+
+## Easy Joker
+
+For poker hand, it has two steps, one is recoginize. another is effect.
+
+For modifiers, we have already know the type, what we should do is only effect.
+
+
+
+
+
+Joker handing is divided into two parts, one is meet condition.
+
+Another is effect.
+
+for easy joker, we can just check if we meet the condition(poker_hand)
+
+If we meet, we can handle the effect.
+
+
+
+
+
+---
+
