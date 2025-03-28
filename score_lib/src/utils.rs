@@ -1,6 +1,7 @@
 use std::collections::HashMap;
+use crate::card::CardUtils;
 
-use ortalib::{ Card, Rank };
+use ortalib::{ Card, Rank, Suit };
 
 pub fn group_poker_by_rank(cards_played: &Vec<Card>) -> HashMap<Rank, Vec<Card>> {
     let mut rank_groups = HashMap::new();
@@ -25,4 +26,18 @@ pub fn max_num_of_rank(cards_played: &Vec<Card>) -> i32 {
     } else {
         return 0;
     }
+}
+
+pub fn num_of_poker_by_suits(cards: &Vec<Card>, suits: Vec<Suit>) -> usize {
+    return cards
+        .iter()
+        .filter(|card| (suits.contains(&card.suit) || card.is_wild()))
+        .count();
+}
+
+pub fn num_of_poker_by_ranks(cards: &Vec<Card>, ranks: Vec<Rank>) -> usize {
+    return cards
+        .iter()
+        .filter(|card| (ranks.contains(&card.rank) || card.is_wild()))
+        .count();
 }

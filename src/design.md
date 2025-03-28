@@ -105,3 +105,19 @@ If we meet, we can handle the effect.
 
 ---
 
+
+
+Since Flush take precedence over than straight, three of a kind...
+
+Four finger flush might be three of a kind, two pair, straight.
+
+why two pairs can't be seen as pair, why four finger flush can't be seen as a pair?
+
+Because two pairs have 5 cards, 5 is not even. Flush also have 5 cards, 5 is not even.
+
+
+
+ 
+
+for on scored joker, we pass a card to joker_value, then return the new chips and new mult.
+
