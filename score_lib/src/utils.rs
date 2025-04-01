@@ -19,6 +19,7 @@ pub fn count_poker_by_rank(cards_played: &Vec<Card>) -> HashMap<Rank, i32> {
     return m;
 }
 
+/// Finds the maximum number of cards with the same rank
 pub fn max_num_of_rank(cards_played: &Vec<Card>) -> i32 {
     let m = count_poker_by_rank(cards_played);
     if let Some((&_, &count)) = m.iter().max_by_key(|&(_, count)| count) {
@@ -28,16 +29,10 @@ pub fn max_num_of_rank(cards_played: &Vec<Card>) -> i32 {
     }
 }
 
+/// Counts cards that match any of the specified suits (including wild cards)
 pub fn num_of_poker_by_suits(cards: &Vec<Card>, suits: Vec<Suit>) -> usize {
     return cards
         .iter()
         .filter(|card| (suits.contains(&card.suit) || card.is_wild()))
-        .count();
-}
-
-pub fn num_of_poker_by_ranks(cards: &Vec<Card>, ranks: Vec<Rank>) -> usize {
-    return cards
-        .iter()
-        .filter(|card| (ranks.contains(&card.rank) || card.is_wild()))
         .count();
 }

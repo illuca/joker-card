@@ -7,73 +7,54 @@ use crate::{
 use ortalib::{ Card, Chips, Enhancement, Mult, PokerHand, Rank, Suit };
 use std::{ collections::{ HashSet }, vec };
 
+/// Checks if all cards in the played hand are of the same suit
+/// Returns true if all non-wild cards are of the same suit or if all cards are wild
 fn same_suite(cards_played: &Vec<Card>) -> bool {
     let mut suit_set: HashSet<Suit> = HashSet::new();
     for card in cards_played {
         match card.enhancement {
+            // Ignore wild cards when checking for flush
             Some(Enhancement::Wild) => (),
             _ => {
                 suit_set.insert(card.suit);
             }
         }
     }
+    // check if we have less than 1 suit (can be 0 if all cards are wild)
     suit_set.len() < 1
 }
 
+/// Trait defining utility methods for poker hand evaluation
 pub trait PokerHandUtils {
+    /// Checks if the given cards match this poker hand
     fn is(&self, cards_played: &Vec<Card>) -> bool;
+
+    /// Recognizes all possible poker hands from the given cards
     fn recogonize(cards_played: &Vec<Card>) -> Vec<PokerHand>;
+
+    /// Returns a vector of all possible poker hands in descending order of value
     fn vector() -> Vec<PokerHand>;
-    // fn contains(&self, target: PokerHand, s: &Score) -> bool;
+
+    /// Applies the poker hand's value to the chips and multiplier
     fn apply(&self, chips: &mut Chips, mult: &mut Mult) -> ();
 }
+
 impl PokerHandUtils for PokerHand {
+    /// Apply the hand's value to chips and multiplier
     fn apply(&self, chips: &mut Chips, mult: &mut Mult) -> () {
         let (c, m) = self.hand_value();
+        // Add the values to the provided chips and multiplier
         *chips += c;
         *mult += m;
         explain!("{:?} {:?}", self, (chips, mult));
     }
-    // fn contains(&self, target: PokerHand, s: &Score) -> bool {
-    //     let vs = match self {
 
-    //         PokerHand::FiveOfAKind => {
-    //             let mut tmp = vec![
-    //                 PokerHand::FiveOfAKind,
-    //                 PokerHand::FourOfAKind,
-    //                 PokerHand::ThreeOfAKind,
-    //                 PokerHand::Pair
-    //             ];
-    //             PokerHand::Flush.is(&s.cards_played).then(|| tmp.push(PokerHand::Flush));
-    //             tmp
-    //         }
-    //         PokerHand::FourOfAKind => {
-    //             let mut tmp = vec![
-    //                 PokerHand::FourOfAKind,
-    //                 PokerHand::ThreeOfAKind,
-    //                 PokerHand::Pair
-    //             ];
-    //             PokerHand::Flush.is(&s.cards_played).then(|| tmp.push(PokerHand::Flush));
-    //             tmp
-    //         }
-    //         PokerHand::Flush => {
-    //             let mut tmp: Vec<PokerHand> = Vec::new();
-    //             PokerHand::Straight.is(&s.cards_played).then(|| tmp.push(PokerHand::Straight));
-    //             PokerHand::ThreeOfAKind.is(&s.cards_played).then(|| tmp.push(PokerHand::Straight));
-    //             PokerHand::TwoPair.is(&s.cards_played).then(|| tmp.push(PokerHand::TwoPair));
-    //             tmp
-    //         }
-    //         PokerHand::ThreeOfAKind => vec![PokerHand::ThreeOfAKind, PokerHand::Pair],
-    //         PokerHand::TwoPair => vec![PokerHand::TwoPair],
-    //         PokerHand::Pair => vec![PokerHand::Pair],
-    //         &x => vec![x],
-    //     };
-
-    //     return vs.contains(&target);
-    // }
+    /// Recognize all poker hands that match the given cards
     fn recogonize(cards_played: &Vec<Card>) -> Vec<PokerHand> {
+        // Get all possible poker hands in order
         let vs = Self::vector();
         let mut matches = Vec::new();
+        // Check each hand type
         for v in vs {
             if v.is(&cards_played) {
                 matches.push(v);
@@ -82,20 +63,26 @@ impl PokerHandUtils for PokerHand {
         matches
     }
 
+    /// Determine if the given cards match this poker hand
     fn is(&self, cards_played: &Vec<Card>) -> bool {
-        // TODO check if it is 5 cards for StraightFlush, Flush,Straight
         match *self {
             PokerHand::FlushFive =>
                 // suite set might be 0 when 5 cards are all wild
                 PokerHand::FiveOfAKind.is(cards_played) && same_suite(cards_played),
+
             PokerHand::FlushHouse =>
                 PokerHand::FullHouse.is(cards_played) && same_suite(cards_played),
+
             PokerHand::FiveOfAKind => max_num_of_rank(cards_played) == 5,
+
             PokerHand::StraightFlush =>
                 PokerHand::Flush.is(cards_played) && PokerHand::Straight.is(cards_played),
+
             PokerHand::FourOfAKind => max_num_of_rank(cards_played) >= 4,
+
             PokerHand::FullHouse =>
                 PokerHand::ThreeOfAKind.is(cards_played) && PokerHand::TwoPair.is(cards_played),
+
             PokerHand::Flush => {
                 if cards_played.len() < 5 {
                     return false;
@@ -116,15 +103,16 @@ impl PokerHandUtils for PokerHand {
                 }
                 return true;
             }
+
             PokerHand::Straight => {
                 if cards_played.len() < 5 {
                     return false;
                 }
 
                 let mut cards = cards_played.clone();
-
                 cards.sort_by_key(|card| card.rank.straight_value());
 
+                // Check if cards are in sequential order
                 let mut is_consecutive = true;
                 for i in 0..cards.len() - 1 {
                     if cards[i + 1].rank.straight_value() != cards[i].rank.straight_value() + 1 {
@@ -137,6 +125,7 @@ impl PokerHandUtils for PokerHand {
                     return true;
                 }
 
+                // Special case for A-2-3-4-5 straight
                 let has_ace = cards.iter().any(|card| matches!(card.rank, Rank::Ace));
                 let has_two = cards.iter().any(|card| matches!(card.rank, Rank::Two));
                 let has_three = cards.iter().any(|card| matches!(card.rank, Rank::Three));
@@ -145,7 +134,9 @@ impl PokerHandUtils for PokerHand {
 
                 has_ace && has_two && has_three && has_four && has_five
             }
+
             PokerHand::ThreeOfAKind => max_num_of_rank(cards_played) >= 3,
+
             PokerHand::TwoPair => {
                 let m = count_poker_by_rank(cards_played);
                 let mut k = 0;
@@ -159,12 +150,12 @@ impl PokerHandUtils for PokerHand {
                 }
                 return false;
             }
+
             PokerHand::Pair => {
                 let m = count_poker_by_rank(cards_played);
                 for (_, count) in m {
-                    // five of a kind, flush
-                    // four of a kind, three of a kind, two pair
-                    // is possible to be a pair
+                    // higher hands like five of a kind,
+                    // four of a kind, three of a kind can also be considered as pair
                     if count >= 2 {
                         return true;
                     }
@@ -176,6 +167,7 @@ impl PokerHandUtils for PokerHand {
         }
     }
 
+    /// Return vector of all poker hands in descending order of value
     fn vector() -> Vec<PokerHand> {
         return vec![
             PokerHand::FlushFive,

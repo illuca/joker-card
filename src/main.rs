@@ -41,5 +41,5 @@ fn score(round: Round) -> (Chips, Mult) {
     let mut score = Score::new(round);
     score.calculate_score();
 
-    return (score.chips, score.mult);
+    (score.chips, score.mult)
 }
